@@ -1,6 +1,6 @@
-import * as React from 'react';
+import { h, Component } from 'preact';
 import * as PropTypes from 'prop-types';
-import SizeAndPositionManager, {ItemSize} from './SizeAndPositionManager';
+import SizeAndPositionManager, { ItemSize } from './SizeAndPositionManager';
 import {
   ALIGNMENT,
   DIRECTION,
@@ -10,9 +10,10 @@ import {
   positionProp,
   scrollProp,
   sizeProp,
+  INFINITE_SCROLL_DIRECTION
 } from './constants';
 
-export {DIRECTION as ScrollDirection} from './constants';
+export { DIRECTION as ScrollDirection } from './constants';
 
 export type ItemPosition = 'absolute' | 'sticky';
 
@@ -27,6 +28,7 @@ export interface ItemStyle {
   marginRight?: number;
   marginBottom?: number;
   zIndex?: number;
+  visibility?: string;
 }
 
 interface StyleCache {
@@ -55,11 +57,14 @@ export interface Props {
   scrollToAlignment?: ALIGNMENT;
   scrollDirection?: DIRECTION;
   stickyIndices?: number[];
-  style?: React.CSSProperties;
+  infiniteScrollOffset?: number | string;
+  infiniteScroll?: boolean;
+  infiniteScrollDirection?: INFINITE_SCROLL_DIRECTION;
+  style?: any;
   width?: number | string;
-  onItemsRendered?({startIndex, stopIndex}: RenderedRows): void;
+  onItemsRendered?({ startIndex, stopIndex }: RenderedRows): void;
   onScroll?(offset: number, event: UIEvent): void;
-  renderItem(itemInfo: ItemInfo): React.ReactNode;
+  renderItem(itemInfo: ItemInfo): any;
 }
 
 export interface State {
@@ -67,13 +72,13 @@ export interface State {
   scrollChangeReason: SCROLL_CHANGE_REASON;
 }
 
-const STYLE_WRAPPER: React.CSSProperties = {
+const STYLE_WRAPPER: any = {
   overflow: 'auto',
   willChange: 'transform',
   WebkitOverflowScrolling: 'touch',
 };
 
-const STYLE_INNER: React.CSSProperties = {
+const STYLE_INNER: any = {
   position: 'relative',
   width: '100%',
   minHeight: '100%',
@@ -96,11 +101,13 @@ const STYLE_STICKY_ITEM = {
   position: 'sticky' as ItemPosition,
 };
 
-export default class VirtualList extends React.PureComponent<Props, State> {
+export default class VirtualList extends Component<Props, State> {
   static defaultProps = {
     overscanCount: 3,
     scrollDirection: DIRECTION.VERTICAL,
     width: '100%',
+    infiniteScrollDirection: INFINITE_SCROLL_DIRECTION.UP,
+    infiniteScrollOffset: 50
   };
 
   static propTypes = {
@@ -115,6 +122,12 @@ export default class VirtualList extends React.PureComponent<Props, State> {
     ]).isRequired,
     onScroll: PropTypes.func,
     onItemsRendered: PropTypes.func,
+    infiniteScrollOffset: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    infiniteScroll: PropTypes.bool,
+    infiniteScrollDirection: PropTypes.oneOf([
+      INFINITE_SCROLL_DIRECTION.DOWN,
+      INFINITE_SCROLL_DIRECTION.UP
+    ]),
     overscanCount: PropTypes.number,
     renderItem: PropTypes.func.isRequired,
     scrollOffset: PropTypes.number,
@@ -158,7 +171,7 @@ export default class VirtualList extends React.PureComponent<Props, State> {
   private styleCache: StyleCache = {};
 
   componentDidMount() {
-    const {scrollOffset, scrollToIndex} = this.props;
+    const { scrollOffset, scrollToIndex } = this.props;
     this.rootNode.addEventListener('scroll', this.handleScroll, {
       passive: true,
     });
@@ -228,7 +241,7 @@ export default class VirtualList extends React.PureComponent<Props, State> {
   }
 
   componentDidUpdate(_: Props, prevState: State) {
-    const {offset, scrollChangeReason} = this.state;
+    const { offset, scrollChangeReason } = this.state;
 
     if (
       prevState.offset !== offset &&
@@ -243,7 +256,7 @@ export default class VirtualList extends React.PureComponent<Props, State> {
   }
 
   scrollTo(value: number) {
-    const {scrollDirection = DIRECTION.VERTICAL} = this.props;
+    const { scrollDirection = DIRECTION.VERTICAL } = this.props;
 
     this.rootNode[scrollProp[scrollDirection]] = value;
   }
@@ -253,7 +266,7 @@ export default class VirtualList extends React.PureComponent<Props, State> {
     scrollToAlignment = this.props.scrollToAlignment,
     itemCount: number = this.props.itemCount,
   ): number {
-    const {scrollDirection = DIRECTION.VERTICAL} = this.props;
+    const { scrollDirection = DIRECTION.VERTICAL } = this.props;
 
     if (index < 0 || index >= itemCount) {
       index = 0;
@@ -289,16 +302,18 @@ export default class VirtualList extends React.PureComponent<Props, State> {
       stickyIndices,
       style,
       width,
+      infiniteScroll,
+      infiniteScrollDirection,
       ...props
     } = this.props;
-    const {offset} = this.state;
-    const {start, stop} = this.sizeAndPositionManager.getVisibleRange({
+    const { offset } = this.state;
+    const { start, stop } = this.sizeAndPositionManager.getVisibleRange({
       containerSize: this.props[sizeProp[scrollDirection]] || 0,
       offset,
       overscanCount,
     });
-    const items: React.ReactNode[] = [];
-    const wrapperStyle = {...STYLE_WRAPPER, ...style, height, width};
+    const items: any[] = [];
+    const wrapperStyle = { ...STYLE_WRAPPER, ...style, height, width };
     const innerStyle = {
       ...STYLE_INNER,
       [sizeProp[scrollDirection]]: this.sizeAndPositionManager.getTotalSize(),
@@ -352,9 +367,27 @@ export default class VirtualList extends React.PureComponent<Props, State> {
     this.rootNode = node;
   };
 
+  private handleInfiniteScroll = (event: UIEvent, offset: number) => {
+    const {
+      // infiniteScrollDirection,
+      // infiniteScrollOffset,
+      height
+    } = this.props;
+
+    let _target: HTMLElement = event.target as HTMLElement;
+    const _height: number = parseInt(height.toString());
+    const _scrollHeight: number = _target.scrollHeight - _height;
+
+    console.log(_scrollHeight, offset);
+  }
+
   private handleScroll = (event: UIEvent) => {
-    const {onScroll} = this.props;
+    const { onScroll, infiniteScroll } = this.props;
     const offset = this.getNodeOffset();
+
+    if (infiniteScroll) {
+      this.handleInfiniteScroll(event, offset);
+    }
 
     if (
       offset < 0 ||
@@ -375,7 +408,7 @@ export default class VirtualList extends React.PureComponent<Props, State> {
   };
 
   private getNodeOffset() {
-    const {scrollDirection = DIRECTION.VERTICAL} = this.props;
+    const { scrollDirection = DIRECTION.VERTICAL } = this.props;
 
     return this.rootNode[scrollProp[scrollDirection]];
   }
@@ -403,7 +436,7 @@ export default class VirtualList extends React.PureComponent<Props, State> {
       return style;
     }
 
-    const {scrollDirection = DIRECTION.VERTICAL} = this.props;
+    const { scrollDirection = DIRECTION.VERTICAL } = this.props;
     const {
       size,
       offset,
@@ -411,16 +444,16 @@ export default class VirtualList extends React.PureComponent<Props, State> {
 
     return (this.styleCache[index] = sticky
       ? {
-          ...STYLE_STICKY_ITEM,
-          [sizeProp[scrollDirection]]: size,
-          [marginProp[scrollDirection]]: offset,
-          [oppositeMarginProp[scrollDirection]]: -(offset + size),
-          zIndex: 1,
-        }
+        ...STYLE_STICKY_ITEM,
+        [sizeProp[scrollDirection]]: size,
+        [marginProp[scrollDirection]]: offset,
+        [oppositeMarginProp[scrollDirection]]: -(offset + size),
+        zIndex: 1,
+      }
       : {
-          ...STYLE_ITEM,
-          [sizeProp[scrollDirection]]: size,
-          [positionProp[scrollDirection]]: offset,
-        });
+        ...STYLE_ITEM,
+        [sizeProp[scrollDirection]]: size,
+        [positionProp[scrollDirection]]: offset,
+      });
   }
 }

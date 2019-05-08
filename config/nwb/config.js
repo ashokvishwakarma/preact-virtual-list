@@ -1,5 +1,5 @@
 module.exports = {
-  type: 'react-app',
+  type: 'preact-app',
   polyfill: false,
   webpack: {
     extra: {

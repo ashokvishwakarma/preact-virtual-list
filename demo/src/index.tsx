@@ -1,11 +1,10 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import { h, Component, render } from 'preact';
 
-import VirtualList, {ItemStyle} from '../../src';
+import VirtualList, { ItemStyle } from '../../src';
 import './demo.css';
 
-class Demo extends React.Component {
-  renderItem = ({style, index}: {style: ItemStyle; index: number}) => {
+class Demo extends Component {
+  renderItem = ({ style, index }: { style: ItemStyle; index: number }) => {
     return (
       <div className="Row" style={style} key={index}>
         Row #{index}
@@ -23,10 +22,11 @@ class Demo extends React.Component {
           renderItem={this.renderItem}
           itemSize={50}
           className="VirtualList"
+          infiniteScroll={true}
         />
       </div>
     );
   }
 }
 
-ReactDOM.render(<Demo />, document.querySelector('#app'));
+render(<Demo />, document.body);

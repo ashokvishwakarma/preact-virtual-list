@@ -1,3 +1,7 @@
+export enum INFINITE_SCROLL_DIRECTION {
+  UP = 'up',
+  DOWN = 'DOWN'
+}
 export enum ALIGNMENT {
   AUTO = 'auto',
   START = 'start',

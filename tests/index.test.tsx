@@ -1,5 +1,4 @@
-import * as React from 'react';
-import {render} from 'react-dom';
+import { h, Component, render } from 'preact';
 import VirtualList from '../src';
 
 const HEIGHT = 100;
@@ -13,7 +12,7 @@ interface ItemAttributes {
 
 describe('VirtualList', () => {
   let node: HTMLDivElement;
-  function renderItem({index, style, ...props}: ItemAttributes) {
+  function renderItem({ index, style, ...props }: ItemAttributes) {
     return (
       <div className="item" key={index} style={style} {...props}>
         Item #{index}
@@ -45,14 +44,14 @@ describe('VirtualList', () => {
     });
 
     it('does not render more children than available if the list is not filled', () => {
-      render(getComponent({itemCount: 5}), node);
+      render(getComponent({ itemCount: 5 }), node);
 
       expect(node.querySelectorAll('.item')).toHaveLength(5);
     });
 
     it('handles dynamically updating the number of items', () => {
       for (let itemCount = 0; itemCount < 5; itemCount++) {
-        render(getComponent({itemCount}), node);
+        render(getComponent({ itemCount }), node);
         expect(node.querySelectorAll('.item')).toHaveLength(itemCount);
       }
     });
@@ -60,7 +59,7 @@ describe('VirtualList', () => {
     describe('stickyIndices', () => {
       const stickyIndices = [0, 10, 20, 30, 50];
 
-      function itemRenderer({index, style}) {
+      function itemRenderer({ index, style }) {
         return renderItem({
           index,
           style,
@@ -104,19 +103,19 @@ describe('VirtualList', () => {
   /** Test scrolling via initial props */
   describe('scrollToIndex', () => {
     it('scrolls to the top', () => {
-      render(getComponent({scrollToIndex: 0}), node);
+      render(getComponent({ scrollToIndex: 0 }), node);
 
       expect(node.textContent).toContain('Item #0');
     });
 
     it('scrolls down to the middle', () => {
-      render(getComponent({scrollToIndex: 49}), node);
+      render(getComponent({ scrollToIndex: 49 }), node);
 
       expect(node.textContent).toContain('Item #49');
     });
 
     it('scrolls to the bottom', () => {
-      render(getComponent({scrollToIndex: 99}), node);
+      render(getComponent({ scrollToIndex: 99 }), node);
 
       expect(node.textContent).toContain('Item #99');
     });
@@ -178,20 +177,20 @@ describe('VirtualList', () => {
 
   describe('property updates', () => {
     it('updates :scrollToIndex position when :itemSize changes', () => {
-      render(getComponent({scrollToIndex: 50}), node);
+      render(getComponent({ scrollToIndex: 50 }), node);
       expect(node.textContent).toContain('Item #50');
 
       // Making rows taller pushes name off/beyond the scrolled area
-      render(getComponent({scrollToIndex: 50, itemSize: 20}), node);
+      render(getComponent({ scrollToIndex: 50, itemSize: 20 }), node);
       expect(node.textContent).toContain('Item #50');
     });
 
     it('updates :scrollToIndex position when :height changes', () => {
-      render(getComponent({scrollToIndex: 50}), node);
+      render(getComponent({ scrollToIndex: 50 }), node);
       expect(node.textContent).toContain('Item #50');
 
       // Making the list shorter leaves only room for 1 item
-      render(getComponent({scrollToIndex: 50, height: 20}), node);
+      render(getComponent({ scrollToIndex: 50, height: 20 }), node);
       expect(node.textContent).toContain('Item #50');
     });
 
@@ -199,13 +198,13 @@ describe('VirtualList', () => {
       render(getComponent(), node);
       expect(node.textContent).not.toContain('Item #50');
 
-      render(getComponent({scrollToIndex: 50}), node);
+      render(getComponent({ scrollToIndex: 50 }), node);
       expect(node.textContent).toContain('Item #50');
     });
 
     it('updates scroll position if size shrinks smaller than the current scroll', () => {
-      render(getComponent({scrollToIndex: 500}), node);
-      render(getComponent({scrollToIndex: 500, itemCount: 10}), node);
+      render(getComponent({ scrollToIndex: 500 }), node);
+      render(getComponent({ scrollToIndex: 500, itemCount: 10 }), node);
 
       expect(node.textContent).toContain('Item #9');
     });

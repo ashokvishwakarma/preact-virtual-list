@@ -6,6 +6,7 @@
     "declaration": true,
     "declarationDir": "types",
     "jsx": "react",
+    "jsxFactory": "h",
     "strictNullChecks": true,
     "noImplicitAny": false,
     "experimentalDecorators": true,

@@ -1,7 +1,7 @@
-import {execSync} from 'child_process';
-import {writeFileSync} from 'fs-extra';
-import {resolve as resolvePath} from 'path';
-import {rollup} from 'rollup';
+import { execSync } from 'child_process';
+import { writeFileSync } from 'fs-extra';
+import { resolve as resolvePath } from 'path';
+import { rollup } from 'rollup';
 import rimraf from 'rimraf';
 
 import createRollupConfig from './rollup/config';
@@ -15,10 +15,10 @@ const entry = resolvePath(intermediateBuild, './index.js');
 compileTypescript('--target ES5');
 
 Promise.all([
-  runRollup({entry, output: 'react-tiny-virtual-list.es.js', format: 'es'}),
-  runRollup({entry, output: 'react-tiny-virtual-list.cjs.js', format: 'cjs'}),
-  runRollup({entry, output: 'react-tiny-virtual-list.js', format: 'umd'}),
-  runRollup({entry, output: 'react-tiny-virtual-list.min.js', format: 'umd', minify: true}),
+  runRollup({ entry, output: 'preact-virtual-list.es.js', format: 'es' }),
+  runRollup({ entry, output: 'preact-virtual-list.cjs.js', format: 'cjs' }),
+  runRollup({ entry, output: 'preact-virtual-list.js', format: 'umd' }),
+  runRollup({ entry, output: 'preact-virtual-list.min.js', format: 'umd', minify: true }),
 ])
   .then(cleanIntermediateBuild)
   .catch((error) => {
@@ -29,7 +29,7 @@ Promise.all([
     });
   });
 
-function runRollup({entry, output, format, minify = false, outputDir = build}) {
+function runRollup({ entry, output, format, minify = false, outputDir = build }) {
   const config = createRollupConfig({
     input: entry,
     output,
@@ -51,6 +51,6 @@ function compileTypescript(args = '') {
   });
 }
 
-function cleanIntermediateBuild(callback = () => {}) {
+function cleanIntermediateBuild(callback = () => { }) {
   return new Promise((resolve) => rimraf(intermediateBuild, resolve));
 }
